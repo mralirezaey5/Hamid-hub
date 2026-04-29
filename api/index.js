@@ -1,4 +1,6 @@
-export const config = { runtime: "edge" };
+export const config = {
+  runtime: "edge",
+};
 
 const TARGET_BASE = (process.env.TARGET_DOMAIN || "").replace(/\/$/, "");
 
@@ -24,11 +26,9 @@ export default async function handler(req) {
   }
 
   try {
-    // ساخت URL به شکل استاندارد و بدون باگ
-    const incomingUrl = new URL(req.url);
-    const targetUrl = TARGET_BASE + incomingUrl.pathname + incomingUrl.search;
+    const url = new URL(req.url);
+    const targetUrl = TARGET_BASE + url.pathname + url.search;
 
-    // ساخت هدرها
     const headers = new Headers();
     let clientIp = null;
 
@@ -55,7 +55,6 @@ export default async function handler(req) {
       headers.set("x-forwarded-for", clientIp);
     }
 
-    // مدیریت body (سازگار با edge)
     const method = req.method;
     const hasBody = method !== "GET" && method !== "HEAD";
 
@@ -66,10 +65,8 @@ export default async function handler(req) {
       redirect: "follow",
     });
 
-    // تمیز کردن response headers
     const respHeaders = new Headers(response.headers);
     respHeaders.delete("transfer-encoding");
-    respHeaders.delete("content-encoding");
 
     return new Response(response.body, {
       status: response.status,
